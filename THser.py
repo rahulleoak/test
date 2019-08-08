@@ -1,51 +1,44 @@
 import subprocess
-import os
-import socket
 import threading
 from _thread import start_new_thread
-import threading
+import socket 
+import os
 
-def threaded(c, addr):
+def threaded(c,addr):
 	while True:
 		data = c.recv(1024)
-		output=subprocess.Popen(['arp', addr],stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout,stderr = output.communicate()
-		prt = str(stdout)
-		print(prt)
-		
+		cmd = subprocess.Popen(['arp',addr],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+		stdout,stderr = cmd.communicate()
+		arp = str(stdout)
+		print(arp)
+
+		data = data[::-1]
 		if not data:
 			print('Bye')
 			break
 
-		data = data[::-1]
-
-		c.send(prt.encode('ascii'))
-	
+		c.send(arp.encode('ascii'))
 	c.close()
 
-
-def Main():
-	host = ""
-	port = 2244
+def main():
+	host = ''
+	port = 2213
 	threads = []
 
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((host, port))
-	print("socket binded to post", port)
-
+	s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+	s.bind((host,port))
 	s.listen(5)
-	print("socket is listening")
+	print("ACCEPTING CONN")
+
 	while True:
-		c, addr = s.accept()
-		print('Connected to :', addr[0], ':', addr[1])
-		t = start_new_thread(threaded, (c,addr[0]),)
+		c,addr = s.accept()
+		print("Connection established TO: ",addr[0])
+		t = start_new_thread(threaded,(c,addr[0]),)
 		threads.append(t)
 	s.close()
 
 	for t in threads:
 		t.join()
 
-
-
 if __name__ == '__main__':
-	Main()
+	main()
